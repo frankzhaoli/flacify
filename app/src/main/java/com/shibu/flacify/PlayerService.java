@@ -225,7 +225,7 @@ public class PlayerService extends Service
     public void  getAudioFocusAndPlay()
     {
         am=(AudioManager) this.getBaseContext().getSystemService(Context.AUDIO_SERVICE);
-
+        //optimize the deprecated method
         int result=am.requestAudioFocus(afChangeListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
         if(result== AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
