@@ -13,12 +13,20 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.media.MediaPlayer;
 import android.media.AudioManager;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import static com.shibu.flacify.Player.player;
 
@@ -77,7 +85,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         String url="https://musikfy.000webhostapp.com/flacify_app/1111.flac";
-        startStreamingService(url);
+        //startStreamingService(url);
+        fetchSongsFromWeb();
     }
 
     private void startStreamingService(String url)
@@ -148,4 +157,79 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    private void fetchSongsFromWeb()
+    {
+        Thread thread=new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                //maybe do https later
+                HttpURLConnection urlConnection=null;
+                InputStream inputStream;
+                String web="https://musikfy.000webhostapp.com/flacify_app/getmusic.php";
+
+                try
+                {
+                    URL url=new URL(web);
+                    urlConnection=(HttpURLConnection) url.openConnection();
+                    //post to upload
+                    urlConnection.setRequestMethod("GET");
+
+                    int statusCode=urlConnection.getResponseCode();
+                    //http connection is okay
+                    if(statusCode==200)
+                    {
+                        inputStream=new BufferedInputStream((urlConnection.getInputStream()));
+                        String response=convertInputStreamToString(inputStream);
+                        Log.i("Song request ok", response);
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.printStackTrace();
+                }
+                finally
+                {
+                    if(urlConnection!=null)
+                    {
+                        urlConnection.disconnect();
+                    }
+                }
+            }
+        });
+        thread.start();
+    }
+
+    private String convertInputStreamToString(InputStream inputStream) throws IOException
+    {
+        BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(inputStream));
+        String line="";
+        String result="";
+
+        while((line=bufferedReader.readLine())!=null)
+        {
+            result+=line;
+        }
+
+        if(inputStream!=null)
+        {
+            inputStream.close();
+        }
+
+        return result;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
