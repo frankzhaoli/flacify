@@ -19,6 +19,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.media.MediaPlayer;
 import android.media.AudioManager;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -27,6 +29,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.shibu.flacify.Player.player;
 
@@ -35,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
     static FloatingActionButton playPauseButton;
     PlayerService mBoundService;
     boolean mServiceBound=false;
+    List<Song> songs=new ArrayList<>();
+    ListView songsListView;
 
     private ServiceConnection mServiceConnection=new ServiceConnection()
     {
@@ -84,8 +90,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        String url="https://musikfy.000webhostapp.com/flacify_app/1111.flac";
+        //String url="https://musikfy.000webhostapp.com/flacify_app/1111.flac";
         //startStreamingService(url);
+        songsListView=(ListView)findViewById(R.id.SongsListView);
         fetchSongsFromWeb();
     }
 
@@ -184,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
                         inputStream=new BufferedInputStream((urlConnection.getInputStream()));
                         String response=convertInputStreamToString(inputStream);
                         Log.i("Song request ok", response);
+                        parseIntoSongs(response);
                     }
                 }
                 catch(Exception e)
@@ -219,6 +227,47 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return result;
+    }
+
+    private void parseIntoSongs(String data)
+    {
+        String []dataArray=data.split("\\*");
+
+        for(int i=0; i<dataArray.length; i++)
+        {
+            String []songArray=dataArray[i].split(",");
+            Song song=new Song(songArray[0], songArray[1], songArray[2], songArray[3]);
+            songs.add(song);
+        }
+
+        for(int i=0; i<songs.size(); i++)
+        {
+            Log.i("Got songs: ", songs.get(i).getTitle());
+        }
+        populateSongsListView();
+    }
+
+    private void populateSongsListView()
+    {
+        runOnUiThread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                SongListAdapter adapter=new SongListAdapter(MainActivity.this, songs);
+                songsListView.setAdapter(adapter);
+                songsListView.setOnItemClickListener(new AdapterView.OnItemClickListener()
+                {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+                    {
+                        Song song=songs.get(position);
+                        String songAddress="https://musikfy.000webhostapp.com/flacify_app/"+song.getTitle();
+                        startStreamingService(songAddress);
+                    }
+                });
+            }
+        });
     }
 }
 
