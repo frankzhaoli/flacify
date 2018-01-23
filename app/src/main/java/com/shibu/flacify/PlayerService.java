@@ -1,6 +1,7 @@
 package com.shibu.flacify;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -103,7 +104,7 @@ public class PlayerService extends Service
         }
 
         Notification notification=new NotificationCompat.Builder(this)
-                .setContentTitle("Music Player")
+                .setContentTitle("Flacify")
                 .setTicker("Playing Music")
                 .setContentText("My Song")
                 .setSmallIcon(R.drawable.symbol)
